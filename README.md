@@ -1,4 +1,4 @@
 # VixenHealth project
 
 ### Documentation:
-[ТЫК](docs/)
+[ТЫК](docs/README.md)
