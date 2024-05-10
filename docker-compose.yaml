@@ -8,5 +8,11 @@ x-postgres-environment: &x-postgres-environment
   POSTGRES_NAME: ${POSTGRES_NAME}
 
 x-rabbit-environment: &x-rabbit-environment
+  RABBITMQ_DEFAULT_HOST: ${RABBIT_HOST}
   RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
-  RABBITMQ_DEFAULT_PASSWORD: ${RABBITMQ_PASSWORD}
+  RABBITMQ_DEFAULT_PASSWORD: ${RABBIT_PASSWORD}
+
+x-minio-environment: &x-minio-environment
+  MINIO_ROOT_HOST: ${MINIO_HOST}
+  MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+  MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
