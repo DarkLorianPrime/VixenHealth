@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: int = logging.INFO
 
     @cached_property
-    def get_postgres_url(self) -> URL:
+    def database_url(self) -> URL:
         database_url = URL(
             drivername=self.DRIVER + "asyncpg",
             username=self.POSTGRES_USER,
