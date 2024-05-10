@@ -48,6 +48,15 @@ services:
       - pgdata:/var/lib/postgresql/data
     environment:
       <<: [ *x-postgres-environment ]
+
+  rabbit:
+    image: bitnami/rabbitmq
+    environment:
+      <<: [ *x-rabbit-environment ]
+      RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: ${RABBIT_MANAGEMENT}
+    volumes:
+      - rabbit-data:/var/lib/rabbitmq
+
 volumes:
   minio-data:
   pgdata:
