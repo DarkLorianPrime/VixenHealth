@@ -16,3 +16,21 @@ x-minio-environment: &x-minio-environment
   MINIO_ROOT_HOST: ${MINIO_HOST}
   MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
   MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+
+
+services:
+  minio:
+    image: minio/minio
+    environment:
+      <<: [ *x-minio-environment ]
+
+    volumes:
+      - minio-data:/export
+
+    command: minio server /export --console-address ":9090"
+
+
+volumes:
+  minio-data:
+  pgdata:
+  rabbit-data:
