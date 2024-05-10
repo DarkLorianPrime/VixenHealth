@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessi
 from containers.vixenhealth_id.app.settings import settings
 
 engine: AsyncEngine = create_async_engine(settings.database_url)
-sessionmaker = async_sessionmaker(engine, class_=AsyncEngine, expire_on_commit=False)
+session_maker = async_sessionmaker(engine, class_=AsyncEngine, expire_on_commit=False)
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async with sessionmaker() as sess:
+    async with session_maker() as sess:
         yield sess
