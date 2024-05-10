@@ -61,7 +61,8 @@ services:
 
   vixenhealth_id:
     build: containers/vixenhealth_id
-
+    environment:
+      <<: [ *x-rabbit-environment, *x-postgres-environment, *x-minio-environment]
     command: uvicorn main:app --host=0.0.0.0 --port=8000
     volumes:
       - "./containers/vixenhealth_id/app:/application"
