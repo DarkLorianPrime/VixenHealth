@@ -20,8 +20,6 @@ x-minio-environment: &x-minio-environment
 
 services:
   minio:
-    depends_on:
-      - nginx
     image: minio/minio
     restart: always
     environment:
@@ -33,6 +31,10 @@ services:
     command: minio server /export --console-address ":9090"
 
   nginx:
+    depends_on:
+      - database
+      - minio
+      - rabbit
     image: nginx:latest
     restart: always
     volumes:
