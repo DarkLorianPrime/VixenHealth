@@ -7,3 +7,6 @@ x-postgres-environment: &x-postgres-environment
   POSTGRES_PORT: ${POSTGRES_PORT}
   POSTGRES_NAME: ${POSTGRES_NAME}
 
+x-rabbit-environment: &x-rabbit-environment
+  RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+  RABBITMQ_DEFAULT_PASSWORD: ${RABBITMQ_PASSWORD}
