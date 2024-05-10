@@ -59,6 +59,13 @@ services:
     volumes:
       - rabbit-data:/var/lib/rabbitmq
 
+  vixenhealth_id:
+    build: containers/vixenhealth_id
+
+    command: uvicorn main:app --host=0.0.0.0 --port=8000
+    volumes:
+      - "./containers/vixenhealth_id/app:/application"
+
 volumes:
   minio-data:
   pgdata:
