@@ -20,6 +20,8 @@ x-minio-environment: &x-minio-environment
 
 services:
   minio:
+    depends_on:
+      - nginx
     image: minio/minio
     restart: always
     environment:
@@ -39,6 +41,13 @@ services:
       - "80:80"
       - "443:443"
 
+  database:
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      <<: [ *x-postgres-environment ]
 volumes:
   minio-data:
   pgdata:
