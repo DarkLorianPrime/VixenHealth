@@ -1,0 +1,73 @@
+version: "3.10"
+
+x-postgres-environment: &x-postgres-environment
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  POSTGRES_HOST: ${POSTGRES_HOST}
+  POSTGRES_PORT: ${POSTGRES_PORT}
+  POSTGRES_NAME: ${POSTGRES_NAME}
+
+x-rabbit-environment: &x-rabbit-environment
+  RABBITMQ_DEFAULT_HOST: ${RABBIT_HOST}
+  RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+  RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+
+x-minio-environment: &x-minio-environment
+  MINIO_ROOT_HOST: ${MINIO_HOST}
+  MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+  MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+
+
+services:
+  minio:
+    image: minio/minio
+    restart: always
+    environment:
+      <<: [ *x-minio-environment ]
+
+    volumes:
+      - minio-data:/export
+
+    command: minio server /export --console-address ":9090"
+
+  nginx:
+    depends_on:
+      - database
+      - minio
+      - rabbit
+    image: nginx:latest
+    restart: always
+    volumes:
+      - "./nginx.conf:/etc/nginx/conf.d/nginx.conf:ro"
+    ports:
+      - "80:80"
+      - "443:443"
+
+  database:
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      <<: [ *x-postgres-environment ]
+
+  rabbit:
+    image: bitnami/rabbitmq
+    environment:
+      <<: [ *x-rabbit-environment ]
+      RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: ${RABBIT_MANAGEMENT}
+    volumes:
+      - rabbit-data:/var/lib/rabbitmq
+
+  vixenhealth_id:
+    build: containers/vixenhealth_id
+    environment:
+      <<: [ *x-rabbit-environment, *x-postgres-environment, *x-minio-environment ]
+    command: uvicorn main:app --host=0.0.0.0 --port=8000
+    volumes:
+      - "./containers/vixenhealth_id/app:/application"
+
+volumes:
+  minio-data:
+  pgdata:
+  rabbit-data:
