@@ -1,7 +1,11 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, APIRouter
 
 from routers import authentication_router, settings_router, profile_router
 from prometheus_fastapi_instrumentator import Instrumentator
+
+from storages.cdn.cdn import init_minio
 
 
 def connect_routers(application: FastAPI) -> None:
@@ -18,11 +22,18 @@ def connect_utils(application: FastAPI) -> None:
     ).instrument(application).expose(application)
 
 
+@asynccontextmanager
+async def lifespan_starlette(_):
+    init_minio()
+    yield
+
+
 def create_app() -> FastAPI:
     application = FastAPI(
         title="VixenHealth ID",
         description="Сервис, отвечающий за аутентификацию и взаимодействие с профилем пользователей.",
-        version="0.0.3"
+        version="0.0.3",
+        lifespan=lifespan_starlette
     )
     connect_routers(application)
     connect_utils(application)
