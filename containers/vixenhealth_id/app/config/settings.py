@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     RABBIT_HOST: str = Field(alias="RABBITMQ_DEFAULT_HOST")
     RABBIT_USER: str = Field(alias="RABBITMQ_DEFAULT_USER")
-    RABBIT_PASSWORD: str = Field(alias="RABBITMQ_DEFAULT_PASSWORD")
+    RABBIT_PASS: str = Field(alias="RABBITMQ_DEFAULT_PASS")
 
     PROJECT_SECRET_KEY: str
 
