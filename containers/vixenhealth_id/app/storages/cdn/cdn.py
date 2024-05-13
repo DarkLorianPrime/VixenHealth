@@ -9,7 +9,8 @@ def get_minio():
     return Minio(
         f"{settings.MINIO_HOST}:9000",
         access_key=settings.MINIO_USER,
-        secret_key=settings.MINIO_PASSWORD
+        secret_key=settings.MINIO_PASSWORD,
+        secure=False
     )
 
 
@@ -18,7 +19,7 @@ def init_minio():
     if not minio.bucket_exists(AVATAR_BUCKET_NAME):
         minio.make_bucket(AVATAR_BUCKET_NAME)
 
-        with open("assets/default.png", "rb") as default_avatar:
+        with open("storages/cdn/assets/default.png", "rb") as default_avatar:
             minio.put_object(
                 bucket_name=AVATAR_BUCKET_NAME,
                 object_name="default.png",
