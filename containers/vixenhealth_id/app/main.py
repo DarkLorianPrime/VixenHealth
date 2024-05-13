@@ -13,7 +13,9 @@ def connect_routers(application: FastAPI) -> None:
 
 
 def connect_utils(application: FastAPI) -> None:
-    Instrumentator().instrument(application).expose(application)
+    Instrumentator(
+        excluded_handlers=["/metrics"]
+    ).instrument(application).expose(application)
 
 
 def create_app() -> FastAPI:
