@@ -6,7 +6,7 @@ from typing import Optional, Any
 from sqlalchemy import TypeDecorator, String, Dialect
 from sqlalchemy.sql.type_api import _T
 
-from containers.vixenhealth_id.app.storages.cdn.cdn import get_minio
+from storages.cdn.cdn import get_minio
 
 file_type_regex: re.Pattern = re.compile(r"(\.[0-9a-z]+)$")
 
