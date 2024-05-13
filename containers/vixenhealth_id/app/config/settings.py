@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     LOG_LEVEL: int = logging.INFO
 
+    PROJECT_VERSION: str
+
     @cached_property
     def database_url(self) -> URL:
         database_url = URL(
