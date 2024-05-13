@@ -38,7 +38,7 @@ services:
     image: nginx:latest
     restart: always
     volumes:
-      - "./nginx.conf:/etc/nginx/conf.d/nginx.conf:ro"
+      - "./configs/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro"
     ports:
       - "80:80"
       - "443:443"
@@ -67,7 +67,30 @@ services:
     volumes:
       - "./containers/vixenhealth_id/app:/application"
 
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./configs/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    volumes:
+      - ./configs/grafana:/var/lib/grafana
+
 volumes:
   minio-data:
   pgdata:
   rabbit-data:
+  prometheus-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: "./configs/prometheus"
+  grafana-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: "./configs/grafana"

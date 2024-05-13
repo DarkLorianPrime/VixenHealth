@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter
 
-from containers.vixenhealth_id.app.routers import authentication_router, settings_router, profile_router
+from routers import authentication_router, settings_router, profile_router
+from prometheus_fastapi_instrumentator import Instrumentator
 
 
 def connect_routers(application: FastAPI) -> None:
@@ -11,12 +12,20 @@ def connect_routers(application: FastAPI) -> None:
     application.include_router(main_api_router)
 
 
+def connect_utils(application: FastAPI) -> None:
+    Instrumentator(
+        excluded_handlers=["/metrics"]
+    ).instrument(application).expose(application)
+
+
 def create_app() -> FastAPI:
     application = FastAPI(
         title="VixenHealth ID",
         description="Сервис, отвечающий за аутентификацию и взаимодействие с профилем пользователей.",
         version="0.0.3"
     )
+    connect_routers(application)
+    connect_utils(application)
     return application
 
 
