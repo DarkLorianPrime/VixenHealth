@@ -38,7 +38,7 @@ services:
     image: nginx:latest
     restart: always
     volumes:
-      - "./nginx.conf:/etc/nginx/conf.d/nginx.conf:ro"
+      - "./configs/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro"
     ports:
       - "80:80"
       - "443:443"
@@ -66,6 +66,11 @@ services:
     command: uvicorn main:app --host=0.0.0.0 --port=8000
     volumes:
       - "./containers/vixenhealth_id/app:/application"
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - "./configs/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml:ro"
 
 volumes:
   minio-data:
