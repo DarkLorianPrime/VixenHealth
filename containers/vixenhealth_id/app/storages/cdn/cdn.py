@@ -1,6 +1,6 @@
 from minio import Minio
 
-from containers.vixenhealth_id.app.settings import settings
+from config.settings import settings
 
 
 def get_minio():
