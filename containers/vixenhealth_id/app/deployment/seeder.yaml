@@ -1,0 +1,50 @@
+- table: "application"
+  data:
+    - name: "VixenHealth"
+      subdomain: ""
+      description: "Main vixenhealth application"
+      public: true
+
+- table: "permission"
+  data:
+    - name: "Can view target element"
+      codename: "read_access_global"
+      unique_id: "permission_read"
+
+    - name: "Can edit target element"
+      codename: "edit_access_global"
+      unique_id: "permission_edit"
+
+    - name: "Can delete target element"
+      codename: "delete_access_global"
+      unique_id: "permission_delete"
+
+    - name: "Can create new element"
+      codename: "create_access_global"
+      unique_id: "permission_create"
+
+- table: "role"
+  data:
+    - name: "superuser"
+      permissions:
+        depends:
+          - "permission_create"
+          - "permission_edit"
+          - "permission_delete"
+          - "permission_read"
+      unique_id: "superuser_role"
+
+    - name: "default"
+      permissions:
+        depends:
+          - "permission_read"
+
+- table: "account"
+  data:
+    - username: "admin"
+      email: "admin@admin.admin"
+      password: "admin"
+      need_change_password: true
+      roles:
+        depends:
+          - "superuser_role"
