@@ -65,6 +65,7 @@ services:
       <<: [ *x-rabbit-environment, *x-postgres-environment, *x-minio-environment ]
       PROJECT_VERSION: ${PROJECT_VERSION}
       PROJECT_SECRET_KEY: ${PROJECT_SECRET_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
 
     command: uvicorn main:app --host=0.0.0.0 --port=8000
     volumes:
