@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str
     JWT_ACCESS_EXPIRE: int = 30
     JWT_REFRESH_EXPIRE: int = 60 * 24
-    ALGHORITM: str = "HS256"
+    JWT_ALGORITHM: str = "HS256"
 
     DEBUG: bool = True
     LOG_LEVEL: int = logging.INFO
