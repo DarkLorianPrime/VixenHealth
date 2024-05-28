@@ -11,9 +11,7 @@ from yaml import load, Loader
 
 from storages.database.models import Base
 
-unique_ids: Dict[str, UUID] = {
-
-}
+unique_ids: Dict[str, UUID] = {}
 
 
 async def check_fields_on_depends(fields: Dict[str, Any]) -> Dict[str, Any]:
@@ -26,9 +24,7 @@ async def check_fields_on_depends(fields: Dict[str, Any]) -> Dict[str, Any]:
         depends = value.pop("depends", [])
 
         deps_fields[key].extend(
-            unique_ids.get(v)
-            for v in depends
-            if unique_ids.get(v) is not None
+            unique_ids.get(v) for v in depends if unique_ids.get(v) is not None
         )
         deps_names.append(key)
 
@@ -39,16 +35,20 @@ async def check_fields_on_depends(fields: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def insert_row(
-        session: AsyncSession,
-        table: Type[Base],
-        fields: Dict[str, Any]
+    session: AsyncSession, table: Type[Base], fields: Dict[str, Any]
 ) -> UUID | None:
-    stmt: Insert | ReturningInsert = insert(table).values(
-        **fields
-    ).on_conflict_do_nothing(index_elements=[
-        getattr(table, column_name, None) for column_name, column_values in fields.items()
-        if column_values and isinstance(column_values, str)
-    ]).returning(table.id)
+    stmt: Insert | ReturningInsert = (
+        insert(table)
+        .values(**fields)
+        .on_conflict_do_nothing(
+            index_elements=[
+                getattr(table, column_name, None)
+                for column_name, column_values in fields.items()
+                if column_values and isinstance(column_values, str)
+            ]
+        )
+        .returning(table.id)
+    )
 
     result = await session.execute(stmt)
     scalar = result.scalar()
@@ -63,7 +63,7 @@ async def get_row(session: AsyncSession, table: Type[Base], row_id: UUID):
 
 
 async def create_row(table: Type[Base], session: AsyncSession, **fields):
-    unique_id: str | None = fields.pop('unique_id', None)
+    unique_id: str | None = fields.pop("unique_id", None)
 
     deps = await check_fields_on_depends(fields)
     return_id = await insert_row(session, table, fields)
@@ -82,9 +82,11 @@ async def create_row(table: Type[Base], session: AsyncSession, **fields):
                 continue
 
             depends_field.extend(dependency_value)
-            print(depends_field)
 
-async def process_row(table: Type[Base], rows: List[Dict[str, Any]], session: AsyncSession):
+
+async def process_row(
+    table: Type[Base], rows: List[Dict[str, Any]], session: AsyncSession
+):
     for row in rows:
         await create_row(table, session, **row)
 
@@ -104,9 +106,7 @@ async def run_seeder(file: str, session: AsyncSession):
 
         table: Type[Base] | None = models.get(table_name, None)
         if table is None:
-            raise yaml.parser.ParserError(
-                "Couldn't find table '%s'" % table_name
-            )
+            raise yaml.parser.ParserError("Couldn't find table '%s'" % table_name)
 
         await process_row(table, table_seeder["data"], session)
 

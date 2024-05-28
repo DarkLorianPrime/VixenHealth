@@ -8,7 +8,7 @@ from starlette.requests import Request
 
 class CustomModel(BaseModel):
     @classmethod
-    async def as_form(cls, request: Request) -> 'CustomModel':
+    async def as_form(cls, request: Request) -> "CustomModel":
         data: Dict[str, Any] | FormData
         data = await request.form()
 

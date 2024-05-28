@@ -8,5 +8,7 @@ from starlette.responses import JSONResponse
 async def pydantic_exception_handler(_: Request, exc: ValidationError):
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=jsonable_encoder({"detail": exc.errors(), "Error": "Fields is required"}),
+        content=jsonable_encoder(
+            {"detail": exc.errors(), "Error": "Fields is required"}
+        ),
     )

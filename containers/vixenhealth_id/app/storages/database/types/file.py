@@ -22,10 +22,15 @@ class File(TypeDecorator):
         self.cdn = get_minio()
 
     def process_bind_param(self, value: Optional[_T], dialect: Dialect) -> Any:
+        if value == "default.png":
+            return value
+
         if not value:
             return
 
-        folder: str = "" if not self.is_need_folder else datetime.now().strftime("%Y%m%d")
+        folder: str = (
+            "" if not self.is_need_folder else datetime.now().strftime("%Y%m%d")
+        )
 
         file_name: str = str(uuid.uuid4())
         file_type = file_type_regex.search(value.filename)
@@ -38,7 +43,7 @@ class File(TypeDecorator):
             object_name=f"{folder}/{file_name}",
             data=value.file,
             length=-1,
-            part_size=10485760
+            part_size=10485760,
         )
 
         return file_name
