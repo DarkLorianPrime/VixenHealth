@@ -48,3 +48,8 @@
       roles:
         depends:
           - "superuser_role"
+
+- table: "oauth_service"
+  data:
+    - type: "yandex"
+    - type: "vk"
