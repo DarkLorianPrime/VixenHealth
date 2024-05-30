@@ -14,6 +14,7 @@ from api.v1.authentication.scheme import (
 from api.v1.authentication.service import Service
 
 token_router = APIRouter(prefix="/token", tags=["authentication", "token"])
+oauth_router = APIRouter(prefix="/oauth", tags=["authentication", "oauth"])
 
 
 @token_router.post(
@@ -52,3 +53,11 @@ async def refresh_access_token(
     service: Annotated[Service, Depends()],
 ):
     return await service.update_refresh(credentials.refresh_token)
+
+
+@oauth_router.post("/vk")
+async def oauth_vk(): ...
+
+
+@oauth_router.post("/yandex")
+async def oauth_ya(): ...
