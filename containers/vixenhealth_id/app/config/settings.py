@@ -33,6 +33,9 @@ class Settings(BaseSettings):
 
     PROJECT_VERSION: str
 
+    YANDEX_OAUTH_ENDPOINT: str
+    VK_OAUTH_ENDPOINT: str
+
     @cached_property
     def database_url(self) -> URL:
         database_url = URL(
@@ -42,7 +45,7 @@ class Settings(BaseSettings):
             host=self.POSTGRES_HOST,
             port=self.POSTGRES_PORT,
             database=self.POSTGRES_NAME,
-            query={}  # type: ignore
+            query={},  # type: ignore
         )
         return database_url
 
