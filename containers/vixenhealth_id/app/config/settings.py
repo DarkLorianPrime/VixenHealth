@@ -34,7 +34,11 @@ class Settings(BaseSettings):
     PROJECT_VERSION: str
 
     YANDEX_OAUTH_ENDPOINT: str
+
+    # VK OAUTH SETTINGS
     VK_OAUTH_ENDPOINT: str
+    VK_OAUTH_CLIENT_ID: str
+    VK_OAUTH_CLIENT_SECRET: str
 
     @cached_property
     def database_url(self) -> URL:
