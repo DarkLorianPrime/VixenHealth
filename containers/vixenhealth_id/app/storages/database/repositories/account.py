@@ -147,6 +147,20 @@ class AccountRepository(BaseRepository):
             "refresh_token": await create_refresh_token(payload),
         }
 
+    async def get_by_oauth(self, service_type: OauthServiceType, oauth_user_id):
+        stmt = (
+            select(self.model)
+            .join(oauth_account, self.model.id == oauth_account.c.account_id)
+            .join(OauthService, oauth_account.c.oauth_service_id == OauthService.id)
+            .where(
+                OauthService.type == service_type.name,
+                oauth_account.c.service_account_id == str(oauth_user_id),
+            )
+        )
+        result = await self.session.execute(stmt)
+        result_scalar = result.scalars()
+        return result_scalar.first()
+
 
 async def get_account(
     request: Request, repository: Annotated[AccountRepository, Depends()]
