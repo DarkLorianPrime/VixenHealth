@@ -1,7 +1,9 @@
+import subprocess
 from collections import defaultdict
-from typing import Dict, List, Any, Type, DefaultDict
+from typing import Dict, List, Any, Type, DefaultDict, Callable
 
 import yaml.parser
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import mapperlib
 from sqlalchemy import Insert, select, UUID
 from sqlalchemy.dialects.postgresql import insert
@@ -9,9 +11,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.dml import ReturningInsert
 from yaml import load, Loader
 
+from config.settings import settings
 from storages.database.models import Base
+from storages.database.repositories.account import hasher
 
 unique_ids: Dict[str, UUID] = {}
+
+
+class HashPassword:
+    def __call__(self, password):
+        return hasher.hash(password, salt=settings.PROJECT_SECRET_KEY.encode())
+
+
+functions: Dict[str, Callable] = {"HashPassword": HashPassword()}
+
+
+async def check_fields_on_function(fields: Dict[str, Any]) -> Dict[str, Any]:
+    for key, value in fields.items():
+        if isinstance(value, dict):
+            function_name = value["function"]
+            fields[key] = functions[function_name](value["data"])
 
 
 async def check_fields_on_depends(fields: Dict[str, Any]) -> Dict[str, Any]:
@@ -22,10 +41,12 @@ async def check_fields_on_depends(fields: Dict[str, Any]) -> Dict[str, Any]:
             continue
 
         depends = value.pop("depends", [])
-
+        if not depends:
+            continue
         deps_fields[key].extend(
             unique_ids.get(v) for v in depends if unique_ids.get(v) is not None
         )
+
         deps_names.append(key)
 
     for deps_name in deps_names:
@@ -49,8 +70,12 @@ async def insert_row(
         )
         .returning(table.id)
     )
+    try:
+        result = await session.execute(stmt)
+    except ProgrammingError:
+        subprocess.run(["alembic", "upgrade", "head"])
+        raise Exception("Process call alembic upgrade, please restart seeder.")
 
-    result = await session.execute(stmt)
     scalar = result.scalar()
 
     return scalar
@@ -66,6 +91,7 @@ async def create_row(table: Type[Base], session: AsyncSession, **fields):
     unique_id: str | None = fields.pop("unique_id", None)
 
     deps = await check_fields_on_depends(fields)
+    await check_fields_on_function(fields)
     return_id = await insert_row(session, table, fields)
     if return_id is None:
         return
@@ -99,7 +125,6 @@ async def run_seeder(file: str, session: AsyncSession):
         raise yaml.parser.ParserError(
             "Invalid YAML configuration. Expected a list with objects with `table` and `data`"
         )
-
     models = return_declared_models()
     for table_seeder in tables:
         table_name = table_seeder["table"]

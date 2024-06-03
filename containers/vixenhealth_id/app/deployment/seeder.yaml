@@ -41,9 +41,11 @@
 
 - table: "account"
   data:
-    - username: "admin"
+    - username: "Administrator"
       email: "admin@admin.admin"
-      password: "admin"
+      password:
+        data: "AdminPassword123"
+        function: HashPassword
       need_change_password: true
       roles:
         depends:
