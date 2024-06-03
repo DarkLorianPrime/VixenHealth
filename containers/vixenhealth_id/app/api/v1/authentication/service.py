@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Dict, Any
 
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,6 +19,7 @@ from storages.database.models.account import OauthServiceType
 from storages.database.repositories.account import AccountRepository
 
 VK_OAUTH_URL = "https://oauth.vk.com/access_token"
+YANDEX_OAUTH_URL = "https://login.yandex.ru/info"
 
 
 class OauthService:
@@ -26,7 +27,41 @@ class OauthService:
         self.session = session
         self.repository = repository
 
-    async def get_by_vk_credentials(self, token: str):
+    async def get_by_credentials(
+        self, service: OauthServiceType, status_code: int, credentials: Dict[str, Any]
+    ):
+        if status_code != 200:
+            raise HTTPException(
+                status_code=status_code, detail=Exceptions.TOKEN_NOT_AVAILABLE
+            )
+
+        if credentials.get("expires_in", 10001) < 10000:
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN, detail=Exceptions.TOKEN_IS_EXPIRED
+            )
+
+        account = await self.repository.get_by_oauth(
+            service,
+            credentials.get("user_id" if service == OauthServiceType.vk else "psuid"),
+        )
+
+        if account is None:
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND, detail=Exceptions.ACCOUNT_NOT_RELATED
+            )
+
+        return await self.repository.generate_tokens(account)
+
+    async def get_by_ya_credentials(self, token: str) -> Dict[str, str]:
+        result = await async_client.get(
+            YANDEX_OAUTH_URL, headers={"Authorization": f"Bearer {token}"}
+        )
+        account_tokens = await self.get_by_credentials(
+            OauthServiceType.yandex, result.status_code, result.json()
+        )
+        return account_tokens
+
+    async def get_by_vk_credentials(self, token: str) -> Dict[str, str]:
         result = await async_client.get(
             VK_OAUTH_URL,
             params={
@@ -36,27 +71,12 @@ class OauthService:
                 "code": token,
             },
         )
-        credentials = result.json()
-        if result.status_code != 200:
-            raise HTTPException(
-                status_code=result.status_code, detail=Exceptions.TOKEN_NOT_AVAILABLE
-            )
-        if credentials["expires_in"] < 10000:
-            raise HTTPException(
-                status_code=HTTP_403_FORBIDDEN, detail=Exceptions.TOKEN_IS_EXPIRED
-            )
 
-        account = await self.repository.get_by_oauth(
-            OauthServiceType.vk, credentials["user_id"]
+        account_tokens = await self.get_by_credentials(
+            OauthServiceType.vk, result.status_code, result.json()
         )
 
-        if account is None:
-            raise HTTPException(
-                status_code=HTTP_404_NOT_FOUND,
-                detail=Exceptions.ACCOUNT_NOT_RELATED,
-            )
-
-        return await self.repository.generate_tokens(account)
+        return account_tokens
 
 
 class Service:
