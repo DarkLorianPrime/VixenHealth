@@ -10,11 +10,13 @@ from api.v1.authentication.scheme import (
     AuthenticateAccountRequestSchema,
     TokensResponseSchema,
     RefreshAccountRequestSchema,
+    OauthRequestSchema,
 )
 from api.v1.authentication.service import Service
 
 token_router = APIRouter(prefix="/token", tags=["authentication", "token"])
 oauth_router = APIRouter(prefix="/oauth", tags=["authentication", "oauth"])
+fastauth_router = APIRouter(prefix="/fastauth", tags=["authentication", "fastauth"])
 
 
 @token_router.post(
@@ -56,8 +58,15 @@ async def refresh_access_token(
 
 
 @oauth_router.post("/vk")
-async def oauth_vk(): ...
+async def oauth_vk(
+    credentials: Annotated[OauthRequestSchema, Depends(OauthRequestSchema.as_form)],
+    service: Annotated[Service, Depends()],
+):
+    return await service.oauth.get_by_vk_credentials(credentials.token)
 
 
 @oauth_router.post("/yandex")
-async def oauth_ya(): ...
+async def oauth_ya(
+    credentials: Annotated[OauthRequestSchema, Depends(OauthRequestSchema.as_form)]
+): ...
+
