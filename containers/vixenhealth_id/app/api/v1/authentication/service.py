@@ -1,15 +1,62 @@
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.status import (
+    HTTP_403_FORBIDDEN,
+    HTTP_404_NOT_FOUND,
+)
 
+from api.v1.authentication.responses import Exceptions
 from api.v1.authentication.scheme import (
     CreateAccountRequestSchema,
     AuthenticateAccountRequestSchema,
 )
+from config.settings import async_client, settings
 from storages.database.database import get_session
 from storages.database.models import Account
+from storages.database.models.account import OauthServiceType
 from storages.database.repositories.account import AccountRepository
+
+VK_OAUTH_URL = "https://oauth.vk.com/access_token"
+
+
+class OauthService:
+    def __init__(self, session: AsyncSession, repository: AccountRepository):
+        self.session = session
+        self.repository = repository
+
+    async def get_by_vk_credentials(self, token: str):
+        result = await async_client.get(
+            VK_OAUTH_URL,
+            params={
+                "client_id": settings.VK_OAUTH_CLIENT_ID,
+                "client_secret": settings.VK_OAUTH_CLIENT_SECRET,
+                "redirect_uri": settings.VK_OAUTH_ENDPOINT,
+                "code": token,
+            },
+        )
+        credentials = result.json()
+        if result.status_code != 200:
+            raise HTTPException(
+                status_code=result.status_code, detail=Exceptions.TOKEN_NOT_AVAILABLE
+            )
+        if credentials["expires_in"] < 10000:
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN, detail=Exceptions.TOKEN_IS_EXPIRED
+            )
+
+        account = await self.repository.get_by_oauth(
+            OauthServiceType.vk, credentials["user_id"]
+        )
+
+        if account is None:
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND,
+                detail=Exceptions.ACCOUNT_NOT_RELATED,
+            )
+
+        return await self.repository.generate_tokens(account)
 
 
 class Service:
@@ -20,6 +67,7 @@ class Service:
     ):
         self.session = session
         self.repository = repository
+        self.oauth = OauthService(session, repository)
 
     async def is_user_exists(self, credentials: CreateAccountRequestSchema):
         return await self.repository.is_exists(
