@@ -24,8 +24,8 @@ from storages.database.models.permission import Permission, account_permissions
 oauth_account = Table(
     "oauth_account",
     Base.metadata,
-    Column("account_id", ForeignKey("account.id")),
-    Column("oauth_service_id", ForeignKey("oauth_service.id")),
+    Column("account_id", UUID(as_uuid=True), ForeignKey("account.id")),
+    Column("oauth_service_id", UUID(as_uuid=True), ForeignKey("oauth_service.id")),
     Column("service_account_id", String, nullable=False),
     Column("connected_at", DateTime()),
 )
