@@ -1,6 +1,7 @@
 import logging
 from functools import cached_property
 
+import httpx
 from pydantic import Field
 from pydantic_settings import BaseSettings
 from sqlalchemy import URL
@@ -34,7 +35,11 @@ class Settings(BaseSettings):
     PROJECT_VERSION: str
 
     YANDEX_OAUTH_ENDPOINT: str
+
+    # VK OAUTH SETTINGS
     VK_OAUTH_ENDPOINT: str
+    VK_OAUTH_CLIENT_ID: str
+    VK_OAUTH_CLIENT_SECRET: str
 
     @cached_property
     def database_url(self) -> URL:
@@ -51,3 +56,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()  # type: ignore
+async_client = httpx.AsyncClient()

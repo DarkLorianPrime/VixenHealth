@@ -63,3 +63,7 @@ class TokensResponseSchema(BaseModel):
 
 class RefreshAccountRequestSchema(CustomModel):
     refresh_token: str
+
+
+class OauthRequestSchema(CustomModel):
+    token: str

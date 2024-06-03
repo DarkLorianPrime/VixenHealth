@@ -17,7 +17,10 @@ x-minio-environment: &x-minio-environment
 
 x-oauth-environment: &x-oauth-environment
   YANDEX_OAUTH_ENDPOINT: ${YANDEX_OAUTH_ENDPOINT}
+
   VK_OAUTH_ENDPOINT: ${VK_OAUTH_ENDPOINT}
+  VK_OAUTH_CLIENT_ID: ${VK_OAUTH_CLIENT_ID}
+  VK_OAUTH_CLIENT_SECRET: ${VK_OAUTH_CLIENT_SECRET}
 
 include:
   - docker-compose.core-services.yaml

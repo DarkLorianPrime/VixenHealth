@@ -1,5 +1,5 @@
 import datetime
-from typing import Annotated, Optional, Dict, Any, Union
+from typing import Annotated, Optional, Dict, Any, Union, Literal, List, Iterable
 
 from fastapi import Depends, HTTPException
 from minio import Minio
@@ -17,10 +17,15 @@ from config.settings import settings
 from api.v1.authentication.responses import Exceptions
 from storages.cdn.cdn import get_minio
 from storages.database.database import get_session
-from storages.database.models import Account
+from storages.database.models import Account, Role, Permission
 from storages.database.models.__meta__ import BaseRepository
 from argon2 import PasswordHasher
 
+from storages.database.models.account import (
+    OauthService,
+    oauth_account,
+    OauthServiceType,
+)
 from utils.jwt_utils import (
     create_access_token,
     create_refresh_token,
@@ -86,12 +91,24 @@ class AccountRepository(BaseRepository):
             raise HTTPException(
                 status_code=HTTP_404_NOT_FOUND, detail=Exceptions.LOGIN_OR_PASSWORD_NF
             )
+        return await self.generate_tokens(account)
 
-        payload = {"id": str(account.id), "permissions": [], "role": []}
+    async def parse_payload_model(self, models: Iterable[Role | Permission]):
+        new_data = []
+        for model in models:
+            new_data.append({"id": str(model.id)})
 
+        return new_data
+
+    async def generate_tokens(self, account: Account):
+        payload = {
+            "sub": str(account.id),
+            "permissions": await self.parse_payload_model(account.permissions),
+            "roles": await self.parse_payload_model(account.roles),
+        }
         return {
-            "access_token": await create_access_token(payload.copy()),
-            "refresh_token": await create_refresh_token(payload.copy()),
+            "access_token": await create_access_token(payload),
+            "refresh_token": await create_refresh_token(payload),
         }
 
     async def hash_password(self, password: str) -> str:
@@ -125,11 +142,24 @@ class AccountRepository(BaseRepository):
                 status_code=HTTP_404_NOT_FOUND, detail=Exceptions.INVALID_TOKEN_REFRESH
             )
 
-        payload["id"] = payload.pop("sub")
         return {
-            "access_token": await create_access_token(payload.copy()),
-            "refresh_token": await create_refresh_token(payload.copy()),
+            "access_token": await create_access_token(payload),
+            "refresh_token": await create_refresh_token(payload),
         }
+
+    async def get_by_oauth(self, service_type: OauthServiceType, oauth_user_id):
+        stmt = (
+            select(self.model)
+            .join(oauth_account, self.model.id == oauth_account.c.account_id)
+            .join(OauthService, oauth_account.c.oauth_service_id == OauthService.id)
+            .where(
+                OauthService.type == service_type.name,
+                oauth_account.c.service_account_id == str(oauth_user_id),
+            )
+        )
+        result = await self.session.execute(stmt)
+        result_scalar = result.scalars()
+        return result_scalar.first()
 
 
 async def get_account(
