@@ -100,7 +100,7 @@ class AccountRepository(BaseRepository):
 
         return new_data
 
-    async def generate_tokens(self, account: Account):
+    async def generate_tokens(self, account: Account) -> Dict[str, str]:
         payload = {
             "sub": str(account.id),
             "permissions": await self.parse_payload_model(account.permissions),
