@@ -67,6 +67,7 @@ async def oauth_vk(
 
 @oauth_router.post("/yandex")
 async def oauth_ya(
-    credentials: Annotated[OauthRequestSchema, Depends(OauthRequestSchema.as_form)]
-): ...
-
+    credentials: Annotated[OauthRequestSchema, Depends(OauthRequestSchema.as_form)],
+    service: Annotated[Service, Depends()],
+):
+    return await service.oauth.get_by_ya_credentials(credentials.token)
