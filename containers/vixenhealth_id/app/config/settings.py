@@ -1,6 +1,7 @@
 import logging
 from functools import cached_property
 
+import httpx
 from pydantic import Field
 from pydantic_settings import BaseSettings
 from sqlalchemy import URL
@@ -55,3 +56,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()  # type: ignore
+async_client = httpx.AsyncClient()
